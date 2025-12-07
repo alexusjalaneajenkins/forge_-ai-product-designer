@@ -66,8 +66,8 @@ const SidebarLink = ({ item, isActive }: { item: NavItem, isActive: boolean }) =
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group border ${isActive
-          ? 'bg-forge-800 border-forge-700 text-forge-accent shadow-sm'
-          : 'border-transparent text-forge-muted hover:bg-forge-800 hover:text-forge-text'
+        ? 'bg-forge-800 border-forge-700 text-forge-accent shadow-sm'
+        : 'border-transparent text-forge-muted hover:bg-forge-800 hover:text-forge-text'
         }`}
     >
       <item.icon className={`w-5 h-5 ${isActive ? 'text-forge-accent' : 'text-forge-600 group-hover:text-forge-text'}`} />
@@ -112,7 +112,7 @@ const Header = () => {
         ) : (
           <button
             onClick={signIn}
-            className="text-xs font-semibold bg-forge-800 hover:bg-forge-700 text-forge-text px-3 py-1.5 rounded-lg border border-forge-700 transition-colors"
+            className="text-xs font-semibold bg-forge-accent hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors shadow-lg shadow-orange-500/20"
           >
             Sign In
           </button>
