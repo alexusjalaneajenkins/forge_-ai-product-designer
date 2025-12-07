@@ -18,6 +18,8 @@ export interface ResearchDocument {
 }
 
 export interface ProjectState {
+  id?: string;
+  updatedAt?: number;
   title: string;
   currentStep: ProjectStep;
   research: ResearchDocument[];
@@ -28,6 +30,12 @@ export interface ProjectState {
   designSystemOutput: string;
   codePromptOutput: string;
   isGenerating: boolean;
+}
+
+export interface ProjectMetadata {
+  id: string;
+  title: string;
+  updatedAt: number;
 }
 
 export interface GenerationRequest {

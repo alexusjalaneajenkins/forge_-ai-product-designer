@@ -19,13 +19,17 @@ import {
   Brain,
   RefreshCw,
   Edit2,
-  File as FileIcon
+  File as FileIcon,
+  FolderOpen,
+  AlertCircle,
+  X
 } from 'lucide-react';
-import { ProjectState, ProjectStep, ResearchDocument, NavItem } from './types';
+import { ProjectState, ProjectStep, ResearchDocument, NavItem, ProjectMetadata } from './types';
 import * as GeminiService from './services/geminiService';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { saveProject, loadProject } from './services/firebase';
+import { saveProject, loadProject, createProject, getUserProjects, deleteProject } from './services/firebase';
+import { ProjectListDialog } from './components/ProjectListDialog';
 
 // --- Context Definition ---
 
@@ -35,6 +39,8 @@ interface ProjectContextType {
   updateIdea: (idea: string) => void;
   generateArtifact: (step: ProjectStep) => Promise<void>;
   resetProject: () => void;
+  openProjectList: () => void;
+  currentProjectId?: string;
 }
 
 const ProjectContext = createContext<ProjectContextType | null>(null);
@@ -79,6 +85,7 @@ const SidebarLink = ({ item, isActive }: { item: NavItem, isActive: boolean }) =
 
 const Header = () => {
   const { user, signIn, logOut, loading } = useAuth();
+  const { openProjectList } = useProject();
 
   return (
     <header className="h-20 border-b border-forge-700 bg-forge-950 flex items-center justify-between px-8 sticky top-0 z-10">
@@ -98,6 +105,15 @@ const Header = () => {
         ) : user ? (
           <div className="flex items-center gap-2">
             <span className="text-sm text-forge-muted mr-2 hidden md:inline">Welcome, {user.displayName?.split(' ')[0]}</span>
+
+            <button
+              onClick={openProjectList}
+              className="p-2 text-forge-muted hover:text-forge-text hover:bg-forge-800 rounded-lg transition-colors mr-2"
+              title="My Projects"
+            >
+              <FolderOpen className="w-5 h-5" />
+            </button>
+
             <div
               onClick={logOut}
               className="h-9 w-9 rounded-full bg-forge-800 flex items-center justify-center text-xs font-bold border border-forge-700 text-forge-muted overflow-hidden cursor-pointer hover:border-red-500 hover:text-red-500 transition-all shadow-sm"
@@ -550,6 +566,7 @@ const CodePage = () => {
 
 const Layout = () => {
   const location = useLocation();
+  const { user } = useAuth();
 
   const navItems: NavItem[] = [
     { label: 'Idea', step: ProjectStep.IDEA, icon: Lightbulb, path: '/' },
@@ -560,9 +577,30 @@ const Layout = () => {
     { label: 'Code', step: ProjectStep.CODE, icon: Code2, path: '/code' },
   ];
 
+  const { error, clearError } = useAuth();
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(clearError, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
+
   return (
     <div className="min-h-screen flex flex-col bg-forge-900 text-forge-text selection:bg-orange-100 selection:text-orange-900">
       <Header />
+
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-red-500/10 border border-red-500/50 backdrop-blur-md text-red-500 p-4 rounded-xl shadow-2xl flex items-start gap-3 animate-fade-in">
+          <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 text-sm font-medium">{error}</div>
+          <button onClick={clearError} className="hover:bg-red-500/10 p-1 rounded-lg transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-64 border-r border-forge-700 bg-forge-950 p-6 flex flex-col gap-2 hidden md:flex">
           <div className="text-xs font-bold text-forge-500 uppercase tracking-widest mb-4 px-4">Workflow</div>
@@ -628,34 +666,108 @@ const App = () => {
 
 const ProjectProvider = () => {
   const [state, setState] = useState<ProjectState>(initialState);
+  const [projects, setProjects] = useState<ProjectMetadata[]>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string | undefined>(undefined);
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+
   const { user } = useAuth();
   const isLoaded = useRef(false);
 
-  // Load project on mount/login
+  // Load project list on login
   useEffect(() => {
-    if (user && !isLoaded.current) {
-      loadProject(user.uid).then(data => {
-        if (data) {
-          setState(prev => ({ ...prev, ...data }));
+    if (user) {
+      setIsLoadingProjects(true);
+      getUserProjects(user.uid).then(list => {
+        setProjects(list);
+        setIsLoadingProjects(false);
+
+        // If no projects, show dialog to prompt creation? Or just stay on empty.
+        if (list.length > 0) {
+          // Optionally load most recent?
+          // For now, let's show the dialog if they have projects but none selected?
+          // Actually, better flow: If they have projects, load the most recent one automatically.
+          const mostRecent = list[0];
+          loadProjectDetails(mostRecent.id);
+        } else {
+          // No projects, create one automatically? Or let them stay in "Untitled" mode which creates one on save?
+          // Let's create one automatically to simplify state.
+          createNewProject();
         }
-        isLoaded.current = true;
       });
-    } else if (!user) {
-      // Reset if logged out
+    } else {
       setState(initialState);
-      isLoaded.current = false;
+      setProjects([]);
+      setCurrentProjectId(undefined);
     }
   }, [user]);
 
+  const loadProjectDetails = async (projectId: string) => {
+    if (!user) return;
+    setIsLoadingProjects(true);
+    const data = await loadProject(user.uid, projectId);
+    if (data) {
+      setState({ ...data, id: projectId });
+      setCurrentProjectId(projectId);
+      setShowProjectDialog(false);
+    }
+    setIsLoadingProjects(false);
+  };
+
+  const createNewProject = async () => {
+    if (!user) return;
+    try {
+      setIsLoadingProjects(true);
+      const newProject: ProjectState = { ...initialState, title: "New Project " + (projects.length + 1) };
+      const newId = await createProject(user.uid, newProject);
+
+      // Update list
+      const list = await getUserProjects(user.uid);
+      setProjects(list);
+
+      // Set current
+      setCurrentProjectId(newId);
+      setState({ ...newProject, id: newId });
+      setShowProjectDialog(false);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to create project");
+    } finally {
+      setIsLoadingProjects(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    await deleteProject(user.uid, projectId);
+    const list = await getUserProjects(user.uid);
+    setProjects(list);
+
+    if (currentProjectId === projectId) {
+      if (list.length > 0) {
+        loadProjectDetails(list[0].id);
+      } else {
+        // If deleted last project, create a new empty one
+        createNewProject();
+      }
+    }
+  };
+
   // Save project on state change (debounced manually via effect)
   useEffect(() => {
-    if (user && isLoaded.current) {
+    if (user && currentProjectId) {
       const timeoutId = setTimeout(() => {
-        saveProject(user.uid, state);
+        saveProject(user.uid, currentProjectId, state);
+
+        // Update the list metadata if title changed
+        setProjects(prev => prev.map(p =>
+          p.id === currentProjectId ? { ...p, title: state.title, updatedAt: Date.now() } : p
+        ));
       }, 2000); // Auto-save every 2s of inactivity
       return () => clearTimeout(timeoutId);
     }
-  }, [state, user]);
+  }, [state, user, currentProjectId]);
 
   const addResearch = async (file: File) => {
     let content = "";
@@ -727,13 +839,33 @@ const ProjectProvider = () => {
   };
 
   const resetProject = () => {
-    if (confirm("Are you sure? This will clear all progress.")) {
-      setState(initialState);
+    if (confirm("Resetting this project will clear all data. This cannot be undone.")) {
+      // Just reset state content, but keep ID
+      const resetState = { ...initialState, title: state.title };
+      setState(resetState);
     }
   };
 
   return (
-    <ProjectContext.Provider value={{ state, addResearch, updateIdea, generateArtifact, resetProject }}>
+    <ProjectContext.Provider value={{
+      state,
+      addResearch,
+      updateIdea,
+      generateArtifact,
+      resetProject,
+      openProjectList: () => setShowProjectDialog(true),
+      currentProjectId
+    }}>
+      <ProjectListDialog
+        isOpen={showProjectDialog}
+        onClose={() => setShowProjectDialog(false)}
+        projects={projects}
+        onSelect={loadProjectDetails}
+        onCreate={createNewProject}
+        onDelete={handleDeleteProject}
+        isLoading={isLoadingProjects}
+        currentProjectId={currentProjectId}
+      />
       <HashRouter>
         <Layout />
       </HashRouter>

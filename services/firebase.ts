@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { ProjectState } from '../types';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { ProjectState, ProjectMetadata } from '../types';
 
 const firebaseConfig = {
     apiKey: "AIzaSyBt9nKxgvIhMB0KRrWsV9KOOH2fwKO-sgbE",
@@ -17,18 +17,41 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-export const saveProject = async (userId: string, data: ProjectState) => {
+export const saveProject = async (userId: string, projectId: string, data: ProjectState) => {
     try {
-        await setDoc(doc(db, 'projects', userId), data);
+        const payload = {
+            ...data,
+            id: projectId,
+            updatedAt: Date.now()
+        };
+        await setDoc(doc(db, 'users', userId, 'projects', projectId), payload);
     } catch (error) {
         console.error("Error saving project:", error);
         throw error;
     }
 };
 
-export const loadProject = async (userId: string): Promise<ProjectState | null> => {
+export const createProject = async (userId: string, data: ProjectState): Promise<string> => {
     try {
-        const docRef = doc(db, 'projects', userId);
+        // Check limit
+        const projectsRef = collection(db, 'users', userId, 'projects');
+        const snapshot = await getDocs(projectsRef);
+        if (snapshot.size >= 5) {
+            throw new Error("Project limit reached (Max 5). Delete a project to create a new one.");
+        }
+
+        const newDocRef = doc(projectsRef); // Auto-ID
+        await saveProject(userId, newDocRef.id, data);
+        return newDocRef.id;
+    } catch (error) {
+        console.error("Error creating project:", error);
+        throw error;
+    }
+}
+
+export const loadProject = async (userId: string, projectId: string): Promise<ProjectState | null> => {
+    try {
+        const docRef = doc(db, 'users', userId, 'projects', projectId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             return docSnap.data() as ProjectState;
@@ -39,3 +62,29 @@ export const loadProject = async (userId: string): Promise<ProjectState | null> 
         return null;
     }
 };
+
+export const getUserProjects = async (userId: string): Promise<ProjectMetadata[]> => {
+    try {
+        const projectsRef = collection(db, 'users', userId, 'projects');
+        const q = query(projectsRef, orderBy('updatedAt', 'desc'));
+        const snapshot = await getDocs(q);
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            title: doc.data().title || "Untitled Project",
+            updatedAt: doc.data().updatedAt || Date.now()
+        }));
+    } catch (error) {
+        console.error("Error fetching projects:", error);
+        return [];
+    }
+}
+
+export const deleteProject = async (userId: string, projectId: string) => {
+    try {
+        await deleteDoc(doc(db, 'users', userId, 'projects', projectId));
+    } catch (error) {
+        console.error("Error deleting project:", error);
+        throw error;
+    }
+}
