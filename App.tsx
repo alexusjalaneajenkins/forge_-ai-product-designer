@@ -81,25 +81,26 @@ const Header = () => {
   const { user, signIn, logOut, loading } = useAuth();
 
   return (
-    <header className="h-16 border-b border-forge-700 bg-forge-950 flex items-center justify-between px-8 sticky top-0 z-10">
+    <header className="h-20 border-b border-forge-700 bg-forge-950 flex items-center justify-between px-8 sticky top-0 z-10">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-forge-accent flex items-center justify-center shadow-lg shadow-orange-500/20">
-          <Sparkles className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 rounded-lg bg-forge-accent flex items-center justify-center shadow-lg shadow-orange-500/20">
+          <Sparkles className="w-6 h-6 text-white" />
         </div>
-        <h1 className="font-bold text-xl tracking-tight text-forge-text">FORGE <span className="text-forge-muted font-normal">| AI Product Architect</span></h1>
+        <div className="flex flex-col">
+          <h1 className="font-bold text-xl tracking-tight text-forge-text leading-tight">FORGE <span className="text-forge-muted font-normal">| AI Product Architect</span></h1>
+          <p className="text-xs text-forge-500 font-medium">Generate PRDs, Roadmaps, and Code from your ideas</p>
+        </div>
       </div>
       <div className="flex items-center gap-4">
-        <button className="p-2 text-forge-muted hover:text-forge-text transition-colors">
-          <Settings className="w-5 h-5" />
-        </button>
 
         {loading ? (
           <div className="h-8 w-8 rounded-full bg-forge-800 animate-pulse"></div>
         ) : user ? (
           <div className="flex items-center gap-2">
+            <span className="text-sm text-forge-muted mr-2 hidden md:inline">Welcome, {user.displayName?.split(' ')[0]}</span>
             <div
               onClick={logOut}
-              className="h-8 w-8 rounded-full bg-forge-800 flex items-center justify-center text-xs font-bold border border-forge-700 text-forge-muted overflow-hidden cursor-pointer hover:border-red-500 hover:text-red-500 transition-all"
+              className="h-9 w-9 rounded-full bg-forge-800 flex items-center justify-center text-xs font-bold border border-forge-700 text-forge-muted overflow-hidden cursor-pointer hover:border-red-500 hover:text-red-500 transition-all shadow-sm"
               title="Sign Out"
             >
               {user.photoURL ? (
@@ -112,9 +113,9 @@ const Header = () => {
         ) : (
           <button
             onClick={signIn}
-            className="text-xs font-semibold bg-forge-accent hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors shadow-lg shadow-orange-500/20"
+            className="text-sm font-semibold bg-forge-accent hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg transition-colors shadow-lg shadow-orange-500/20 flex items-center gap-2"
           >
-            Sign In
+            <span>Sign in with Google</span>
           </button>
         )}
       </div>
