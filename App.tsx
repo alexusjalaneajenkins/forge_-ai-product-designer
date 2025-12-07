@@ -750,11 +750,12 @@ const ProjectProvider = () => {
     setIsLoadingProjects(false);
   };
 
-  const createNewProject = async () => {
+  const createNewProject = async (title?: string) => {
     if (!user) return;
     try {
       setIsLoadingProjects(true);
-      const newProject: ProjectState = { ...initialState, title: "New Project " + (projects.length + 1) };
+      const projectTitle = title || "New Project " + (projects.length + 1);
+      const newProject: ProjectState = { ...initialState, title: projectTitle };
       const newId = await createProject(user.uid, newProject);
 
       // Update list

@@ -7,7 +7,8 @@ interface ProjectListDialogProps {
     onClose: () => void;
     projects: ProjectMetadata[];
     onSelect: (projectId: string) => void;
-    onCreate: () => void;
+    onSelect: (projectId: string) => void;
+    onCreate: (title: string) => void;
     onDelete: (projectId: string) => void;
     isLoading: boolean;
     currentProjectId?: string;
@@ -23,7 +24,18 @@ export const ProjectListDialog = ({
     isLoading,
     currentProjectId
 }: ProjectListDialogProps) => {
+    const [isCreating, setIsCreating] = React.useState(false);
+    const [newProjectTitle, setNewProjectTitle] = React.useState("");
+
     if (!isOpen) return null;
+
+    const handleCreate = () => {
+        if (newProjectTitle.trim()) {
+            onCreate(newProjectTitle);
+            setNewProjectTitle("");
+            setIsCreating(false);
+        }
+    };
 
     const formatDate = (timestamp: number) => {
         return new Date(timestamp).toLocaleDateString(undefined, {
@@ -69,8 +81,8 @@ export const ProjectListDialog = ({
                                 <div
                                     key={project.id}
                                     className={`group flex items-center justify-between p-4 rounded-xl border transition-all ${currentProjectId === project.id
-                                            ? 'bg-forge-800 border-forge-accent/50 shadow-sm'
-                                            : 'bg-forge-950 border-forge-800 hover:border-forge-600 hover:shadow-md'
+                                        ? 'bg-forge-800 border-forge-accent/50 shadow-sm'
+                                        : 'bg-forge-950 border-forge-800 hover:border-forge-600 hover:shadow-md'
                                         }`}
                                 >
                                     <div
@@ -107,15 +119,47 @@ export const ProjectListDialog = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-forge-700 bg-forge-950 flex justify-end">
-                    <button
-                        onClick={onCreate}
-                        disabled={projects.length >= 5 || isLoading}
-                        className="bg-forge-accent hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2"
-                    >
-                        <Plus className="w-5 h-5" />
-                        {projects.length >= 5 ? 'Limit Reached' : 'New Project'}
-                    </button>
+                <div className="p-6 border-t border-forge-700 bg-forge-950">
+                    {!isCreating ? (
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setIsCreating(true)}
+                                disabled={projects.length >= 5 || isLoading}
+                                className="bg-forge-accent hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2"
+                            >
+                                <Plus className="w-5 h-5" />
+                                {projects.length >= 5 ? 'Limit Reached' : 'New Project'}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 animate-fade-in">
+                            <input
+                                type="text"
+                                value={newProjectTitle}
+                                onChange={(e) => setNewProjectTitle(e.target.value)}
+                                placeholder="Enter project name..."
+                                className="flex-1 bg-forge-900 text-forge-text border border-forge-700 rounded-xl px-4 py-3 focus:outline-none focus:border-forge-accent"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && newProjectTitle.trim()) handleCreate();
+                                    if (e.key === 'Escape') setIsCreating(false);
+                                }}
+                            />
+                            <button
+                                onClick={() => setIsCreating(false)}
+                                className="px-4 py-3 text-forge-muted hover:text-forge-text font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreate}
+                                disabled={!newProjectTitle.trim() || isLoading}
+                                className="bg-forge-accent hover:bg-orange-600 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all"
+                            >
+                                Create
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
