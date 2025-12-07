@@ -37,6 +37,7 @@ interface ProjectContextType {
   state: ProjectState;
   addResearch: (file: File) => Promise<void>;
   updateIdea: (idea: string) => void;
+  updateTitle: (title: string) => void;
   generateArtifact: (step: ProjectStep) => Promise<void>;
   resetProject: () => void;
   openProjectList: () => void;
@@ -85,7 +86,19 @@ const SidebarLink = ({ item, isActive }: { item: NavItem, isActive: boolean }) =
 
 const Header = () => {
   const { user, signIn, logOut, loading } = useAuth();
-  const { openProjectList } = useProject();
+  const { openProjectList, state, updateTitle } = useProject();
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, [isEditingTitle]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') setIsEditingTitle(false);
+  };
 
   return (
     <header className="h-20 border-b border-forge-700 bg-forge-950 flex items-center justify-between px-8 sticky top-0 z-10">
@@ -93,9 +106,32 @@ const Header = () => {
         <div className="w-10 h-10 rounded-lg bg-forge-accent flex items-center justify-center shadow-lg shadow-orange-500/20">
           <Sparkles className="w-6 h-6 text-white" />
         </div>
-        <div className="flex flex-col">
-          <h1 className="font-bold text-xl tracking-tight text-forge-text leading-tight">FORGE <span className="text-forge-muted font-normal">| AI Product Architect</span></h1>
-          <p className="text-xs text-forge-500 font-medium">Generate PRDs, Roadmaps, and Code from your ideas</p>
+        <div className="flex flex-col items-start">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-xl tracking-tight text-forge-text leading-tight">FORGE</span>
+            <span className="text-forge-700">/</span>
+            {isEditingTitle ? (
+              <input
+                ref={titleInputRef}
+                type="text"
+                value={state.title}
+                onChange={(e) => updateTitle(e.target.value)}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={handleKeyDown}
+                className="bg-forge-900 text-forge-text font-medium text-sm px-2 py-0.5 rounded border border-forge-700 focus:outline-none focus:border-forge-accent min-w-[150px]"
+              />
+            ) : (
+              <div
+                onClick={() => setIsEditingTitle(true)}
+                className="font-medium text-forge-text hover:bg-forge-900 px-2 py-0.5 rounded cursor-pointer transition-colors flex items-center gap-2 group"
+                title="Rename Project"
+              >
+                {state.title}
+                <Edit2 className="w-3 h-3 text-forge-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-forge-500 font-medium mt-0.5">Generate PRDs, Roadmaps, and Code from your ideas</p>
         </div>
       </div>
       <div className="flex items-center gap-4">
@@ -808,6 +844,10 @@ const ProjectProvider = () => {
     setState(prev => ({ ...prev, ideaInput: idea }));
   };
 
+  const updateTitle = (title: string) => {
+    setState(prev => ({ ...prev, title }));
+  };
+
   const generateArtifact = async (step: ProjectStep) => {
     setState(prev => ({ ...prev, isGenerating: true }));
     try {
@@ -851,6 +891,7 @@ const ProjectProvider = () => {
       state,
       addResearch,
       updateIdea,
+      updateTitle,
       generateArtifact,
       resetProject,
       openProjectList: () => setShowProjectDialog(true),
