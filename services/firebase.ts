@@ -4,7 +4,7 @@ import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, quer
 import { ProjectState, ProjectMetadata } from '../types';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBt9nKxgvIhMB0KRrWsV9KOOH2fwKO-sgbE",
+    apiKey: "AIzaSyBt9nKxgvIhMB0KRrWsV9KOH2fwKO-sgbE",
     authDomain: "forge-ai-designer.firebaseapp.com",
     projectId: "forge-ai-designer",
     storageBucket: "forge-ai-designer.firebasestorage.app",
