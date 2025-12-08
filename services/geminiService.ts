@@ -75,7 +75,7 @@ export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{
     }
   });
 
-  const mission = missionResponse.response.text().trim();
+  const mission = (missionResponse.text || "").trim();
 
   // 2. Construct the "Report Generation Prompt" (The template for the Chat)
   // This uses the user's specific template, injecting the vision at the top.
