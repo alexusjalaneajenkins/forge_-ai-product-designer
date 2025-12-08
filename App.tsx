@@ -310,13 +310,22 @@ const IdeaPage = () => {
                   <Sparkles className="w-4 h-4" />
                   Product Vision Statement
                 </div>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="text-orange-700 hover:text-orange-900 text-xs font-medium flex items-center gap-1"
-                >
-                  <Edit2 className="w-3 h-3" />
-                  Edit Original
-                </button>
+                <div className="flex items-center gap-2">
+                  {state.synthesizedIdea && (
+                    <CopyButton
+                      text={state.synthesizedIdea}
+                      className="hover:text-orange-900 text-orange-700 bg-orange-100 hover:bg-orange-200 border-orange-200"
+                      title="Copy Vision (Paste into Google Docs for best formatting)"
+                    />
+                  )}
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-orange-700 hover:text-orange-900 text-xs font-medium flex items-center gap-1 px-2 py-1.5 rounded hover:bg-orange-100 transition-colors"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    Edit
+                  </button>
+                </div>
               </div>
               <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <MarkdownRenderer content={state.synthesizedIdea} />
@@ -369,7 +378,7 @@ const IdeaPage = () => {
                         <CopyButton
                           text={state.researchMissionPrompt || ""}
                           className="absolute top-2 right-2"
-                          title="Copy Mission"
+                          title="Copy Mission (Paste into Google Docs for best formatting)"
                         />
                       </div>
                     </div>
@@ -390,7 +399,7 @@ const IdeaPage = () => {
                         <CopyButton
                           text={state.reportGenerationPrompt || ""}
                           className="absolute top-2 right-2"
-                          title="Copy Report Prompt"
+                          title="Copy Report Prompt (Paste into Google Docs for best formatting)"
                         />
                       </div>
                     </div>
@@ -559,7 +568,7 @@ const PrdPage = () => {
             <CopyButton
               text={state.prdOutput}
               className="hover:text-forge-text"
-              title="Copy PRD"
+              title="Copy PRD (Paste into Google Docs for best formatting)"
             />
           )}
         </div>
@@ -615,6 +624,19 @@ const PlanningPage = () => {
       </div>
 
       <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col flex-1 min-h-0 overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-forge-700 bg-forge-900/30 flex items-center justify-between">
+          <span className="text-sm font-semibold text-forge-500 uppercase tracking-wider flex items-center gap-2">
+            <Map className="w-4 h-4" />
+            Roadmap Document
+          </span>
+          {state.roadmapOutput && (
+            <CopyButton
+              text={state.roadmapOutput}
+              className="hover:text-forge-text"
+              title="Copy Roadmap (Paste into Google Docs for best formatting)"
+            />
+          )}
+        </div>
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
           {state.roadmapOutput ? (
             <MarkdownRenderer content={state.roadmapOutput} />
@@ -662,6 +684,19 @@ const DesignPage = () => {
       </div>
 
       <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col flex-1 min-h-0 overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-forge-700 bg-forge-900/30 flex items-center justify-between">
+          <span className="text-sm font-semibold text-forge-500 uppercase tracking-wider flex items-center gap-2">
+            <Palette className="w-4 h-4" />
+            Design Blueprint
+          </span>
+          {state.designSystemOutput && (
+            <CopyButton
+              text={state.designSystemOutput}
+              className="hover:text-forge-text"
+              title="Copy Design System (Paste into Google Docs for best formatting)"
+            />
+          )}
+        </div>
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
           {state.designSystemOutput ? (
             <MarkdownRenderer content={state.designSystemOutput} />
@@ -718,7 +753,7 @@ const CodePage = () => {
             <CopyButton
               text={state.codePromptOutput}
               className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-transparent bg-forge-800 text-forge-text hover:bg-forge-200 border-forge-700`}
-              title="Copy to Clipboard"
+              title="Copy to Clipboard (Paste into Google Docs for best formatting)"
             />
           )}
         </div>
