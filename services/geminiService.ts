@@ -2,7 +2,7 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { ProjectState, ResearchDocument } from "../types";
 
 const getClient = () => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = import.meta.env.VITE_API_KEY || process.env.API_KEY;
   if (!apiKey) {
     throw new Error("API Key not found in environment variables");
   }
