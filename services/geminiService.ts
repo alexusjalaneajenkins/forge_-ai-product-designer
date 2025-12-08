@@ -74,7 +74,7 @@ export const refineIdea = async (rawInput: string): Promise<string> => {
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-1.5-flash',
+    'gemini-2.0-flash',
     prompt, // Pass string directly
     {
       systemInstruction: "You are a Chief Product Officer. Your goal is to clarify and elevate raw ideas into actionable product visions.",
@@ -106,7 +106,7 @@ export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{
 
   const missionResponse = await generateContentWithRetry(
     ai,
-    'gemini-1.5-flash',
+    'gemini-2.0-flash',
     missionPrompt,
     {
       temperature: 0.7,
@@ -192,7 +192,7 @@ export const generatePRD = async (idea: string, research: ResearchDocument[]): P
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-1.5-flash',
+    'gemini-2.0-flash',
     { parts }, // Pass object with parts
     {
       systemInstruction: "You are a world-class Product Manager. You are strict, detailed, and focus on viability and user value.",
@@ -219,7 +219,7 @@ export const generatePlan = async (prd: string): Promise<string> => {
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-1.5-flash',
+    'gemini-2.0-flash',
     prompt,
     {
       systemInstruction: "You are a Technical Project Manager. Break down complex goals into achievable tasks.",
@@ -249,7 +249,7 @@ export const generateDesignSystem = async (prd: string, plan: string): Promise<s
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-1.5-flash',
+    'gemini-2.0-flash',
     prompt,
     {
       systemInstruction: "You are a Senior UI/UX Designer. Focus on aesthetics, accessibility, and modern design trends.",
@@ -287,7 +287,7 @@ export const generateCodePrompt = async (projectState: ProjectState): Promise<st
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-1.5-flash',
+    'gemini-2.0-flash',
     prompt,
     {
       systemInstruction: "You are a Lead Software Engineer. You write precise, technical specifications for other developers.",
