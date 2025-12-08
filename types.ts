@@ -29,6 +29,7 @@ export interface ProjectState {
   roadmapOutput: string;
   designSystemOutput: string;
   codePromptOutput: string;
+  notebookLmPrompt?: string;
   isGenerating: boolean;
 }
 

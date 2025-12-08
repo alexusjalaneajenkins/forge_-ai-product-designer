@@ -48,9 +48,40 @@ export const refineIdea = async (rawInput: string): Promise<string> => {
   return response.text || "Failed to refine idea.";
 };
 
+export const generateResearchPrompt = async (synthesizedIdea: string): Promise<string> => {
+  const ai = getClient();
+  const prompt = `
+    Based on the following Product Vision, create a "Research Pathfinder" prompt that I can feed into another AI (like Google NotebookLM).
+    
+    PRODUCT VISION:
+    ${synthesizedIdea}
+    
+    TASK:
+    Write a prompt that instructs an AI to act as a Market Researcher.
+    The generated prompt should ask for:
+    1. Competitor Analysis (Identify 3-5 direct/indirect competitors)
+    2. User Pain Point deep dive based on the target users in the vision.
+    3. Technical Feasibility checks for the key differentiators.
+    4. Strategic opportunities or gaps in the market.
+    
+    Do NOT generate the research yourself. Generate the PROMPT that will ask for this research.
+    The output should be just the prompt text, ready to copy-paste.
+  `;
+
+  const response: GenerateContentResponse = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      temperature: 0.7,
+    }
+  });
+
+  return response.text || "Failed to generate research prompt.";
+};
+
 export const generatePRD = async (idea: string, research: ResearchDocument[]): Promise<string> => {
   const ai = getClient();
-  
+
   // Construct the Parts array for Multimodal Input
   const parts: any[] = [];
 
@@ -161,7 +192,7 @@ export const generateDesignSystem = async (prd: string, plan: string): Promise<s
 
 export const generateCodePrompt = async (projectState: ProjectState): Promise<string> => {
   const ai = getClient();
-  
+
   const prompt = `
     I need a master prompt to give to an AI coding agent (like yourself or a Cursor bot) to build this entire application.
     
