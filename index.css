@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --color-forge-950: 255 255 255;
+    /* White */
+    --color-forge-900: 248 250 252;
+    /* Slate 50 */
+    --color-forge-800: 241 245 249;
+    /* Slate 100 */
+    --color-forge-700: 226 232 240;
+    /* Slate 200 */
+    --color-forge-600: 148 163 184;
+    /* Slate 400 */
+    --color-forge-500: 100 116 139;
+    /* Slate 500 */
+
+    --color-forge-accent: 249 115 22;
+    /* Orange 500 */
+    --color-forge-success: 16 185 129;
+    /* Emerald 500 */
+
+    --color-forge-text: 15 23 42;
+    /* Slate 900 */
+    --color-forge-muted: 71 85 105;
+    /* Slate 600 */
+  }
+
+  .dark {
+    /* Dark Mode */
+    --color-forge-950: 2 6 23;
+    /* Slate 950 */
+    --color-forge-900: 15 23 42;
+    /* Slate 900 */
+    --color-forge-800: 30 41 59;
+    /* Slate 800 */
+    --color-forge-700: 51 65 85;
+    /* Slate 700 */
+    --color-forge-600: 71 85 105;
+    /* Slate 600 */
+    --color-forge-500: 100 116 139;
+    /* Slate 500 */
+
+    --color-forge-text: 248 250 252;
+    /* Slate 50 */
+    --color-forge-muted: 148 163 184;
+    /* Slate 400 */
+  }
+
+  body {
+    @apply bg-forge-900 text-forge-text font-sans transition-colors duration-300;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: theme('colors.forge.900');
+}
+
+::-webkit-scrollbar-thumb {
+  background: theme('colors.forge.700');
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.forge.600');
+}
