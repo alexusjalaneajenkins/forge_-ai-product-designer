@@ -201,7 +201,7 @@ export const generatePRD = async (idea: string, research: ResearchDocument[]): P
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-2.0-flash',
+    'gemini-2.5-flash',
     { parts }, // Pass object with parts
     {
       systemInstruction: "You are a world-class Product Manager. You are strict, detailed, and focus on viability and user value.",
@@ -228,7 +228,7 @@ export const generatePlan = async (prd: string): Promise<string> => {
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-2.0-flash',
+    'gemini-2.5-flash',
     prompt,
     {
       systemInstruction: "You are a Technical Project Manager. Break down complex goals into achievable tasks.",
