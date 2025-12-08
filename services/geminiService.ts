@@ -31,8 +31,17 @@ const generateContentWithRetry = async (
     } catch (error: any) {
       // Check for 429 (Resource Exhausted) or 503 (Service Unavailable)
       const isRateLimit = error.message?.includes('429') || error.status === 429 || error.code === 429;
+
       if (isRateLimit && attempt < maxRetries - 1) {
-        const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        let waitTime = Math.pow(2, attempt) * 1000; // Default: 1s, 2s, 4s...
+
+        // Try to parse the specific retry time from the error message
+        // Example: "Please retry in 53.024661139s."
+        const match = error.message?.match(/Please retry in ([0-9.]+)s/);
+        if (match && match[1]) {
+          waitTime = Math.ceil(parseFloat(match[1]) * 1000) + 1000; // Add 1s buffer
+        }
+
         console.warn(`Gemini API 429 hit. Retrying in ${waitTime}ms... (Attempt ${attempt + 1}/${maxRetries})`);
         await delay(waitTime);
         attempt++;
@@ -42,7 +51,7 @@ const generateContentWithRetry = async (
       }
     }
   }
-  throw new Error("Max retries exceeded");
+  throw new Error(`Max retries exceeded for model ${modelName}`);
 };
 
 const formatResearchContext = (docs: ResearchDocument[]): string => {
