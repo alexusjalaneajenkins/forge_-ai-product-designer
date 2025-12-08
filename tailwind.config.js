@@ -26,18 +26,17 @@ export default {
                     // To implement DARK MODE, I should change these values to actual dark colors.
 
                     // Let's implement actual Dark Mode colors here.
-                    950: '#020617', // Slate 950 (Deep Dark)
-                    900: '#0f172a', // Slate 900 (Sidebar/bg)
-                    800: '#1e293b', // Slate 800 (Cards)
-                    700: '#334155', // Slate 700 (Borders)
-                    600: '#475569', // Slate 600 (Muted)
-                    500: '#64748b', // Slate 500
+                    950: 'rgb(var(--color-forge-950) / <alpha-value>)',
+                    900: 'rgb(var(--color-forge-900) / <alpha-value>)',
+                    800: 'rgb(var(--color-forge-800) / <alpha-value>)',
+                    700: 'rgb(var(--color-forge-700) / <alpha-value>)',
+                    600: 'rgb(var(--color-forge-600) / <alpha-value>)',
+                    500: 'rgb(var(--color-forge-500) / <alpha-value>)',
 
-                    // Accents stay same
-                    accent: '#f97316', // Orange 500
-                    success: '#10b981', // Emerald 500
-                    text: '#f8fafc', // Slate 50 (Text)
-                    muted: '#94a3b8', // Slate 400 (Muted Text)
+                    accent: 'rgb(var(--color-forge-accent) / <alpha-value>)',
+                    success: 'rgb(var(--color-forge-success) / <alpha-value>)',
+                    text: 'rgb(var(--color-forge-text) / <alpha-value>)',
+                    muted: 'rgb(var(--color-forge-muted) / <alpha-value>)',
                 }
             },
             fontFamily: {

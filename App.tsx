@@ -22,12 +22,15 @@ import {
   File as FileIcon,
   FolderOpen,
   AlertCircle,
-  X
+  X,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { ProjectState, ProjectStep, ResearchDocument, NavItem, ProjectMetadata } from './types';
 import * as GeminiService from './services/geminiService';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { saveProject, loadProject, createProject, getUserProjects, deleteProject } from './services/firebase';
 import { ProjectListDialog } from './components/ProjectListDialog';
 
@@ -85,6 +88,24 @@ const SidebarLink = ({ item, isActive }: { item: NavItem, isActive: boolean }) =
   );
 };
 
+const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      className="p-2 rounded-lg bg-forge-800 border border-forge-700 text-forge-muted hover:text-forge-text hover:border-forge-600 transition-all shadow-sm"
+      title="Toggle Theme"
+    >
+      <div className="relative w-5 h-5">
+        <Sun className={`w-5 h-5 absolute transition-all duration-300 ${theme === 'dark' ? 'scale-0 rotate-90 opacity-0' : 'scale-100 rotate-0 opacity-100'}`} />
+        <Moon className={`w-5 h-5 absolute transition-all duration-300 ${theme === 'light' ? 'scale-0 -rotate-90 opacity-0' : 'scale-100 rotate-0 opacity-100'}`} />
+      </div>
+      <span className="sr-only">Toggle theme</span>
+    </button>
+  );
+};
+
 const Header = () => {
   const { user, signIn, logOut, loading } = useAuth();
   const { openProjectList, state, updateTitle } = useProject();
@@ -136,7 +157,7 @@ const Header = () => {
         </div>
       </div>
       <div className="flex items-center gap-4">
-
+        <ThemeToggle />
         {loading ? (
           <div className="h-8 w-8 rounded-full bg-forge-800 animate-pulse"></div>
         ) : user ? (
@@ -757,9 +778,11 @@ const Layout = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <ProjectProvider />
-    </AuthProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <AuthProvider>
+        <ProjectProvider />
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 
