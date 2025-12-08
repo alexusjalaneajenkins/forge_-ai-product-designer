@@ -348,21 +348,21 @@ const IdeaPage = () => {
                   Bridge the gap between Idea and Research with <strong className="text-forge-text">Google NotebookLM</strong>. Validating your idea with deep research is critical before writing the PRD.
                 </p>
 
-                {!state.researchMissionPrompt ? (
-                  <button
-                    onClick={() => generateResearchPrompt()}
-                    disabled={state.isGenerating}
-                    className="w-full py-3 bg-forge-accent hover:bg-orange-600 text-white rounded-lg font-semibold shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    {state.isGenerating ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Sparkles className="w-4 h-4" />
-                    )}
-                    Generate Research Strategy Prompts
-                  </button>
-                ) : (
-                  <div className="space-y-8">
+                <button
+                  onClick={() => generateResearchPrompt()}
+                  disabled={state.isGenerating}
+                  className="w-full py-3 bg-forge-accent hover:bg-orange-600 text-white rounded-lg font-semibold shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 mb-8"
+                >
+                  {state.isGenerating ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                  {state.researchMissionPrompt ? "Regenerate Research Strategy Prompts" : "Generate Research Strategy Prompts"}
+                </button>
+
+                {state.researchMissionPrompt && (
+                  <div className="space-y-8 animate-fade-in">
                     {/* Prompt 1: Deep Research Mission */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
