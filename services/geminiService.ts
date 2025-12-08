@@ -37,6 +37,7 @@ const generateContentWithRetry = async (
         await delay(waitTime);
         attempt++;
       } else {
+        console.error(`Gemini API Error (Model: ${modelName}):`, error);
         throw error;
       }
     }
@@ -218,7 +219,7 @@ export const generatePlan = async (prd: string): Promise<string> => {
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-1.5-pro',
+    'gemini-1.5-flash',
     prompt,
     {
       systemInstruction: "You are a Technical Project Manager. Break down complex goals into achievable tasks.",
