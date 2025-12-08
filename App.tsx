@@ -24,7 +24,8 @@ import {
   AlertCircle,
   X,
   Moon,
-  Sun
+  Sun,
+  Check
 } from 'lucide-react';
 import { ProjectState, ProjectStep, ResearchDocument, NavItem, ProjectMetadata } from './types';
 import * as GeminiService from './services/geminiService';
@@ -87,6 +88,36 @@ const SidebarLink = ({ item, isActive }: { item: NavItem, isActive: boolean }) =
       <span className="font-medium text-sm">{item.label}</span>
       {isActive && <ChevronRight className="w-4 h-4 ml-auto text-forge-400" />}
     </div>
+  );
+};
+
+const CopyButton = ({ text, className = "", title = "Copy to Clipboard" }: { text: string, className?: string, title?: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`relative p-2 rounded-md transition-all shadow-sm border ${copied
+        ? 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+        : 'bg-forge-800 border-forge-700 text-forge-400 hover:text-forge-text hover:border-forge-500'
+        } ${className}`}
+      title={copied ? "Copied!" : title}
+    >
+      <div className="relative w-4 h-4">
+        <div className={`absolute inset-0 transition-all duration-300 ${copied ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}>
+          <Copy className="w-4 h-4" />
+        </div>
+        <div className={`absolute inset-0 transition-all duration-300 ${copied ? 'scale-100 opacity-100' : 'scale-0 opacity-0 rotate-90'}`}>
+          <Check className="w-4 h-4" />
+        </div>
+      </div>
+    </button>
   );
 };
 
@@ -335,13 +366,11 @@ const IdeaPage = () => {
                         <pre className="text-xs text-forge-muted whitespace-pre-wrap font-mono custom-scrollbar">
                           {state.researchMissionPrompt}
                         </pre>
-                        <button
-                          onClick={() => navigator.clipboard.writeText(state.researchMissionPrompt || "")}
-                          className="absolute top-2 right-2 p-2 bg-forge-800 border border-forge-700 rounded-md text-forge-400 hover:text-forge-text hover:border-forge-500 shadow-sm transition-all"
+                        <CopyButton
+                          text={state.researchMissionPrompt || ""}
+                          className="absolute top-2 right-2"
                           title="Copy Mission"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
+                        />
                       </div>
                     </div>
 
@@ -358,13 +387,11 @@ const IdeaPage = () => {
                         <pre className="text-xs text-forge-muted whitespace-pre-wrap font-mono max-h-60 overflow-y-auto custom-scrollbar">
                           {state.reportGenerationPrompt}
                         </pre>
-                        <button
-                          onClick={() => navigator.clipboard.writeText(state.reportGenerationPrompt || "")}
-                          className="absolute top-2 right-2 p-2 bg-forge-800 border border-forge-700 rounded-md text-forge-400 hover:text-forge-text hover:border-forge-500 shadow-sm transition-all"
+                        <CopyButton
+                          text={state.reportGenerationPrompt || ""}
+                          className="absolute top-2 right-2"
                           title="Copy Report Prompt"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
+                        />
                       </div>
                     </div>
 
@@ -529,9 +556,11 @@ const PrdPage = () => {
             PRD Document
           </span>
           {state.prdOutput && (
-            <button className="text-forge-500 hover:text-forge-text transition-colors" title="Copy">
-              <Copy className="w-4 h-4" />
-            </button>
+            <CopyButton
+              text={state.prdOutput}
+              className="hover:text-forge-text"
+              title="Copy PRD"
+            />
           )}
         </div>
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
@@ -661,13 +690,6 @@ const DesignPage = () => {
 
 const CodePage = () => {
   const { state, generateArtifact } = useProject();
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(state.codePromptOutput);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <div className="max-w-5xl mx-auto h-full flex flex-col animate-fade-in">
@@ -693,13 +715,11 @@ const CodePage = () => {
             Master Prompt (Copy this to IDE)
           </span>
           {state.codePromptOutput && (
-            <button
-              onClick={handleCopy}
-              className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-transparent ${copied ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-forge-800 text-forge-text hover:bg-forge-200 border-forge-700'}`}
-            >
-              {copied ? 'Copied!' : 'Copy to Clipboard'}
-              <Copy className="w-4 h-4" />
-            </button>
+            <CopyButton
+              text={state.codePromptOutput}
+              className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-transparent bg-forge-800 text-forge-text hover:bg-forge-200 border-forge-700`}
+              title="Copy to Clipboard"
+            />
           )}
         </div>
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar font-mono text-sm leading-relaxed bg-white">
