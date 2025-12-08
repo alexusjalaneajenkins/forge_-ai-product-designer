@@ -126,15 +126,7 @@ export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{
 
   // 2. Construct the "Report Generation Prompt" (The template for the Chat)
   // This uses the user's specific template, injecting the vision at the top.
-  const report = `You are an expert Market Researcher with a deep understanding of the product landscape. Your task is to analyze the provided Product Vision Statement and the gathered research sources to generate a comprehensive research report.
-
-Here is the Product Vision Statement:
-
----
-${synthesizedIdea}
----
-
-Please generate a detailed research report addressing the following sections:
+  const report = `Please generate a detailed research report addressing the following sections:
 
 **1. Competitor Analysis:**
 Identify and analyze 3-5 direct and indirect competitors. For each competitor, describe their primary offerings, target audience, key strengths, and weaknesses. Specifically, evaluate how well they currently address (or fail to address) the needs that this product aims to solve.
