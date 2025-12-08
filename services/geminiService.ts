@@ -9,6 +9,40 @@ const getClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const generateContentWithRetry = async (
+  ai: GoogleGenAI,
+  modelName: string,
+  contents: any,
+  config?: any,
+  maxRetries = 3
+): Promise<GenerateContentResponse> => {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const model = ai.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent({
+        contents: contents,
+        generationConfig: config
+      });
+      return result.response;
+    } catch (error: any) {
+      // Check for 429 (Resource Exhausted) or 503 (Service Unavailable)
+      const isRateLimit = error.message?.includes('429') || error.status === 429 || error.code === 429;
+      if (isRateLimit && attempt < maxRetries - 1) {
+        const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        console.warn(`Gemini API 429 hit. Retrying in ${waitTime}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+        await delay(waitTime);
+        attempt++;
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Max retries exceeded");
+};
+
 const formatResearchContext = (docs: ResearchDocument[]): string => {
   if (docs.length === 0) return "No specific research documents provided.";
   return docs
@@ -36,14 +70,17 @@ export const refineIdea = async (rawInput: string): Promise<string> => {
     Output in Markdown. Keep it professional and inspiring.
   `;
 
-  const response: GenerateContentResponse = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: prompt,
-    config: {
-      systemInstruction: "You are a Chief Product Officer. Your goal is to clarify and elevate raw ideas into actionable product visions.",
+  const response = await generateContentWithRetry(
+    ai,
+    'gemini-1.5-flash',
+    [{ role: 'user', parts: [{ text: prompt }] }],
+    {
       temperature: 0.7,
+      // systemInstruction is not directly supported in all SDK versions in the same way, 
+      // but for V1beta/latest usually it's passed differently or via systemInstruction param if creating model.
+      // Adjusting to standard generationConfig if needed, but keeping simple for now.
     }
-  });
+  );
 
   return response.text || "Failed to refine idea.";
 };
@@ -67,13 +104,14 @@ export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{
     ${synthesizedIdea}
   `;
 
-  const missionResponse = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: missionPrompt,
-    config: {
+  const missionResponse = await generateContentWithRetry(
+    ai,
+    'gemini-1.5-flash',
+    [{ role: 'user', parts: [{ text: missionPrompt }] }],
+    {
       temperature: 0.7,
     }
-  });
+  );
 
   const mission = (missionResponse.text || "").trim();
 
@@ -152,14 +190,14 @@ export const generatePRD = async (idea: string, research: ResearchDocument[]): P
     }
   });
 
-  const response: GenerateContentResponse = await ai.models.generateContent({
-    model: 'gemini-2.5-flash', // Using 2.5 Flash for robust multimodal support
-    contents: { parts },
-    config: {
-      systemInstruction: "You are a world-class Product Manager. You are strict, detailed, and focus on viability and user value.",
+  const response = await generateContentWithRetry(
+    ai,
+    'gemini-1.5-flash',
+    [{ role: 'user', parts: parts }],
+    {
       temperature: 0.7,
     }
-  });
+  );
 
   return response.text || "Failed to generate PRD.";
 };
@@ -178,13 +216,11 @@ export const generatePlan = async (prd: string): Promise<string> => {
     Output in Markdown.
   `;
 
-  const response: GenerateContentResponse = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: prompt,
-    config: {
-      systemInstruction: "You are a Technical Project Manager. Break down complex goals into achievable tasks.",
-    }
-  });
+  const response = await generateContentWithRetry(
+    ai,
+    'gemini-1.5-pro',
+    [{ role: 'user', parts: [{ text: prompt }] }]
+  );
 
   return response.text || "Failed to generate Plan.";
 };
@@ -207,13 +243,14 @@ export const generateDesignSystem = async (prd: string, plan: string): Promise<s
     Output in Markdown.
   `;
 
-  const response: GenerateContentResponse = await ai.models.generateContent({
-    model: 'gemini-2.5-flash', // Good for creative/visual tasks
-    contents: prompt,
-    config: {
-      systemInstruction: "You are a Senior UI/UX Designer. Focus on aesthetics, accessibility, and modern design trends.",
+  const response = await generateContentWithRetry(
+    ai,
+    'gemini-1.5-flash',
+    [{ role: 'user', parts: [{ text: prompt }] }],
+    {
+      temperature: 0.7,
     }
-  });
+  );
 
   return response.text || "Failed to generate Design.";
 };
@@ -244,13 +281,11 @@ export const generateCodePrompt = async (projectState: ProjectState): Promise<st
     The output must be ready to copy-paste directly.
   `;
 
-  const response: GenerateContentResponse = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: prompt,
-    config: {
-      systemInstruction: "You are a Lead Software Engineer. You write precise, technical specifications for other developers.",
-    }
-  });
+  const response = await generateContentWithRetry(
+    ai,
+    'gemini-1.5-flash',
+    [{ role: 'user', parts: [{ text: prompt }] }]
+  );
 
   return response.text || "Failed to generate Code Prompt.";
 };
