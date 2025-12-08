@@ -179,7 +179,7 @@ const Header = () => {
 // --- Pages ---
 
 const IdeaPage = () => {
-  const { state, updateIdea, generateArtifact } = useProject();
+  const { state, updateIdea, generateArtifact, generateResearchPrompt } = useProject();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -271,6 +271,63 @@ const IdeaPage = () => {
 
 
             {/* Research Prompt Generator Section Removed from here */}
+            {/* Research Prompt Generator Section (Dark Mode) */}
+            <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col min-h-0 overflow-hidden shadow-sm mt-6 animate-fade-in">
+              <div className="p-4 border-b border-forge-700 bg-forge-900/50 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-forge-accent font-semibold tracking-wide uppercase text-xs">
+                  <Sparkles className="w-4 h-4" />
+                  Deep Research Strategy
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-forge-muted text-sm mb-6 leading-relaxed">
+                  Bridging the gap between Idea and Research: Generate a specialized "Pathfinder Prompt" to use in <strong className="text-forge-text">Google NotebookLM</strong>. Validating your idea with deep research is critical before writing the PRD.
+                </p>
+
+                {!state.notebookLmPrompt ? (
+                  <button
+                    onClick={() => generateResearchPrompt()}
+                    disabled={state.isGenerating}
+                    className="w-full py-3 bg-forge-accent hover:bg-orange-600 text-white rounded-lg font-semibold shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    {state.isGenerating ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    Generate Research Pathfinder Prompt
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-forge-900 border border-forge-700 rounded-lg p-4 relative group">
+                      <pre className="text-xs text-forge-muted whitespace-pre-wrap font-mono max-h-60 overflow-y-auto custom-scrollbar">
+                        {state.notebookLmPrompt}
+                      </pre>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(state.notebookLmPrompt || "")}
+                        className="absolute top-2 right-2 p-2 bg-forge-800 border border-forge-700 rounded-md text-forge-400 hover:text-forge-text hover:border-forge-500 shadow-sm transition-all"
+                        title="Copy Prompt"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="bg-forge-900/30 border border-forge-700 rounded-lg p-4 text-sm text-forge-text">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2 text-forge-accent">
+                        <Terminal className="w-4 h-4" />
+                        Next Steps:
+                      </h4>
+                      <ol className="list-decimal list-inside space-y-1 ml-1 text-forge-muted">
+                        <li><strong className="text-forge-text">Copy</strong> the prompt above.</li>
+                        <li>Go to <a href="https://notebooklm.google.com/" target="_blank" rel="noreferrer" className="text-forge-text hover:text-forge-accent underline decoration-forge-700">Google NotebookLM</a> and create a new notebook.</li>
+                        <li><strong className="text-forge-text">Paste</strong> the prompt into the chat box to uncover competitors & blindspots.</li>
+                        <li><strong className="text-forge-text">Export</strong> your findings and upload them in the next step!</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div className="flex justify-end pt-6">
               <button
@@ -288,7 +345,7 @@ const IdeaPage = () => {
 };
 
 const ResearchPage = () => {
-  const { state, addResearch, generateResearchPrompt } = useProject();
+  const { state, addResearch } = useProject();
   const [isDragging, setIsDragging] = useState(false);
   const navigate = useNavigate();
 
@@ -313,65 +370,7 @@ const ResearchPage = () => {
         </p>
       </div>
 
-      {/* Research Prompt Generator Section (Moved from Idea Page) */}
-      {state.synthesizedIdea && (
-        <div className="bg-white border border-forge-700 rounded-xl flex flex-col min-h-0 overflow-hidden shadow-sm ring-1 ring-forge-900 mb-8 animate-fade-in">
-          <div className="p-4 border-b border-forge-700 bg-blue-50 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-blue-800 font-semibold">
-              <Sparkles className="w-4 h-4" />
-              Deep Research Strategy
-            </div>
-          </div>
-          <div className="p-6">
-            <p className="text-forge-text text-sm mb-4">
-              Use your synthesized idea to generate a "Pathfinder Prompt" for <strong>Google NotebookLM</strong>. Validating your idea with deep research is critical before writing the PRD.
-            </p>
-
-            {!state.notebookLmPrompt ? (
-              <button
-                onClick={() => generateResearchPrompt()}
-                disabled={state.isGenerating}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
-              >
-                {state.isGenerating ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-                Generate Research Pathfinder Prompt
-              </button>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 relative group">
-                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono max-h-60 overflow-y-auto custom-scrollbar">
-                    {state.notebookLmPrompt}
-                  </pre>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(state.notebookLmPrompt || "")}
-                    className="absolute top-2 right-2 p-2 bg-white border border-slate-200 rounded-md text-slate-500 hover:text-blue-600 hover:border-blue-300 shadow-sm transition-all"
-                    title="Copy Prompt"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800">
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <Terminal className="w-4 h-4" />
-                    Next Steps:
-                  </h4>
-                  <ol className="list-decimal list-inside space-y-1 ml-1">
-                    <li><strong>Copy</strong> the prompt above.</li>
-                    <li>Go to <a href="https://notebooklm.google.com/" target="_blank" rel="noreferrer" className="underline hover:text-blue-600">Google NotebookLM</a> and create a new notebook.</li>
-                    <li><strong>Paste</strong> the prompt into the chat box to uncover competitors & blindspots.</li>
-                    <li><strong>Export</strong> your findings (or save as PDF) and upload them below!</li>
-                  </ol>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Research Prompt Generator Section (Moved back to Idea Page) */}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 flex-1 min-h-0">
         <div
