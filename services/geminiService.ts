@@ -48,35 +48,63 @@ export const refineIdea = async (rawInput: string): Promise<string> => {
   return response.text || "Failed to refine idea.";
 };
 
-export const generateResearchPrompt = async (synthesizedIdea: string): Promise<string> => {
+export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{ mission: string, report: string }> => {
   const ai = getClient();
-  const prompt = `
-    Based on the following Product Vision, create a "Research Pathfinder" prompt that I can feed into another AI (like Google NotebookLM).
+
+  // 1. Generate the "Deep Research Mission" (The instruction for the Agent)
+  const missionPrompt = `
+    Based on the following Product Vision, generate a specific, high-level "Deep Research Mission" prompt for an autonomous AI research agent (like Google NotebookLM Deep Research).
     
-    PRODUCT VISION:
+    The mission should instruct the agent to:
+    1. Find direct and indirect competitors.
+    2. Uncover recent trends in the specific market.
+    3. Identify user demographics and pain points.
+    4. Look for technical feasibility and similar existing implementations.
+    
+    Keep the mission prompt concise (under 3 sentences) but directive. Start with "Your mission is to..."
+    
+    Product Vision:
     ${synthesizedIdea}
-    
-    TASK:
-    Write a prompt that instructs an AI to act as a Market Researcher.
-    The generated prompt should ask for:
-    1. Competitor Analysis (Identify 3-5 direct/indirect competitors)
-    2. User Pain Point deep dive based on the target users in the vision.
-    3. Technical Feasibility checks for the key differentiators.
-    4. Strategic opportunities or gaps in the market.
-    
-    Do NOT generate the research yourself. Generate the PROMPT that will ask for this research.
-    The output should be just the prompt text, ready to copy-paste.
   `;
 
-  const response: GenerateContentResponse = await ai.models.generateContent({
+  const missionResponse = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: prompt,
+    contents: missionPrompt,
     config: {
       temperature: 0.7,
     }
   });
 
-  return response.text || "Failed to generate research prompt.";
+  const mission = missionResponse.response.text().trim();
+
+  // 2. Construct the "Report Generation Prompt" (The template for the Chat)
+  // This uses the user's specific template, injecting the vision at the top.
+  const report = `You are an expert Market Researcher with a deep understanding of the product landscape. Your task is to analyze the provided Product Vision Statement and the gathered research sources to generate a comprehensive research report.
+
+Here is the Product Vision Statement:
+
+---
+${synthesizedIdea}
+---
+
+Please generate a detailed research report addressing the following sections:
+
+**1. Competitor Analysis:**
+Identify and analyze 3-5 direct and indirect competitors. For each competitor, describe their primary offerings, target audience, key strengths, and weaknesses. Specifically, evaluate how well they currently address (or fail to address) the needs that this product aims to solve.
+
+**2. User Pain Point Deep Dive:**
+Conduct a detailed deep dive into the specific, acute pain points experienced by the target users identified in the vision. What are their most significant frustrations? Elaborate on how existing solutions might fall short, creating a market opportunity.
+
+**3. Technical Feasibility Check:**
+Assess the technical feasibility of the product's "Key Differentiators." Discuss:
+    *   **Current Technological Landscape:** Are the necessary technologies (AI models, APIs, data sources) readily available?
+    *   **Potential Technical Challenges:** What are the significant hurdles (e.g., accuracy, privacy, latency)?
+    *   **Existing Solutions:** Are there precedents that demonstrate feasibility?
+
+**4. Strategic Opportunities & Market Gaps:**
+Identify strategic opportunities or underserved gaps in the market that this product could uniquely leverage. Consider emerging trends, unmet needs, and potential for new business models.`;
+
+  return { mission, report };
 };
 
 export const generatePRD = async (idea: string, research: ResearchDocument[]): Promise<string> => {

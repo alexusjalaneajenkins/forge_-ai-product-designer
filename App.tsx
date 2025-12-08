@@ -68,6 +68,8 @@ const initialState: ProjectState = {
   roadmapOutput: "",
   designSystemOutput: "",
   codePromptOutput: "",
+  researchMissionPrompt: "",
+  reportGenerationPrompt: "",
   isGenerating: false,
 };
 
@@ -292,7 +294,7 @@ const IdeaPage = () => {
 
 
             {/* Research Prompt Generator Section Removed from here */}
-            {/* Research Prompt Generator Section (Dark Mode) */}
+            {/* Research Strategy Section */}
             <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col min-h-0 overflow-hidden shadow-sm mt-6 animate-fade-in">
               <div className="p-4 border-b border-forge-700 bg-forge-900/50 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-forge-accent font-semibold tracking-wide uppercase text-xs">
@@ -302,10 +304,10 @@ const IdeaPage = () => {
               </div>
               <div className="p-6">
                 <p className="text-forge-muted text-sm mb-6 leading-relaxed">
-                  Bridging the gap between Idea and Research: Generate a specialized "Pathfinder Prompt" to use in <strong className="text-forge-text">Google NotebookLM</strong>. Validating your idea with deep research is critical before writing the PRD.
+                  Bridge the gap between Idea and Research with <strong className="text-forge-text">Google NotebookLM</strong>. Validating your idea with deep research is critical before writing the PRD.
                 </p>
 
-                {!state.notebookLmPrompt ? (
+                {!state.researchMissionPrompt ? (
                   <button
                     onClick={() => generateResearchPrompt()}
                     disabled={state.isGenerating}
@@ -316,21 +318,54 @@ const IdeaPage = () => {
                     ) : (
                       <Sparkles className="w-4 h-4" />
                     )}
-                    Generate Research Pathfinder Prompt
+                    Generate Research Strategy Prompts
                   </button>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="bg-forge-900 border border-forge-700 rounded-lg p-4 relative group">
-                      <pre className="text-xs text-forge-muted whitespace-pre-wrap font-mono max-h-60 overflow-y-auto custom-scrollbar">
-                        {state.notebookLmPrompt}
-                      </pre>
-                      <button
-                        onClick={() => navigator.clipboard.writeText(state.notebookLmPrompt || "")}
-                        className="absolute top-2 right-2 p-2 bg-forge-800 border border-forge-700 rounded-md text-forge-400 hover:text-forge-text hover:border-forge-500 shadow-sm transition-all"
-                        title="Copy Prompt"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
+                  <div className="space-y-8">
+                    {/* Prompt 1: Deep Research Mission */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-forge-800 text-forge-accent flex items-center justify-center text-xs font-bold ring-1 ring-forge-700">1</div>
+                        <h4 className="text-sm font-semibold text-forge-text">Deep Research Mission</h4>
+                        <span className="text-xs text-forge-500 bg-forge-900 px-2 py-0.5 rounded-full border border-forge-700">Paste into Deep Research Agent</span>
+                      </div>
+                      <p className="text-xs text-forge-muted">Instructs the autonomous agent to gather market data.</p>
+
+                      <div className="bg-forge-900 border border-forge-700 rounded-lg p-4 relative group">
+                        <pre className="text-xs text-forge-muted whitespace-pre-wrap font-mono custom-scrollbar">
+                          {state.researchMissionPrompt}
+                        </pre>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(state.researchMissionPrompt || "")}
+                          className="absolute top-2 right-2 p-2 bg-forge-800 border border-forge-700 rounded-md text-forge-400 hover:text-forge-text hover:border-forge-500 shadow-sm transition-all"
+                          title="Copy Mission"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Prompt 2: Report Generation */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-forge-800 text-forge-accent flex items-center justify-center text-xs font-bold ring-1 ring-forge-700">2</div>
+                        <h4 className="text-sm font-semibold text-forge-text">Report Generation</h4>
+                        <span className="text-xs text-forge-500 bg-forge-900 px-2 py-0.5 rounded-full border border-forge-700">Paste into Chat after Research</span>
+                      </div>
+                      <p className="text-xs text-forge-muted">Instructs NotebookLM to synthesize findings into a strategic 4-part report.</p>
+
+                      <div className="bg-forge-900 border border-forge-700 rounded-lg p-4 relative group">
+                        <pre className="text-xs text-forge-muted whitespace-pre-wrap font-mono max-h-60 overflow-y-auto custom-scrollbar">
+                          {state.reportGenerationPrompt}
+                        </pre>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(state.reportGenerationPrompt || "")}
+                          className="absolute top-2 right-2 p-2 bg-forge-800 border border-forge-700 rounded-md text-forge-400 hover:text-forge-text hover:border-forge-500 shadow-sm transition-all"
+                          title="Copy Report Prompt"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="bg-forge-900/30 border border-forge-700 rounded-lg p-4 text-sm text-forge-text">
@@ -339,12 +374,13 @@ const IdeaPage = () => {
                         Next Steps:
                       </h4>
                       <ol className="list-decimal list-inside space-y-1 ml-1 text-forge-muted">
-                        <li><strong className="text-forge-text">Copy</strong> the prompt above.</li>
-                        <li>Go to <a href="https://notebooklm.google.com/" target="_blank" rel="noreferrer" className="text-forge-text hover:text-forge-accent underline decoration-forge-700">Google NotebookLM</a> and create a new notebook.</li>
-                        <li><strong className="text-forge-text">Paste</strong> the prompt into the chat box to uncover competitors & blindspots.</li>
-                        <li><strong className="text-forge-text">Export</strong> your findings and upload them in the next step!</li>
+                        <li>Start a new notebook in <a href="https://notebooklm.google.com/" target="_blank" rel="noreferrer" className="text-forge-text hover:text-forge-accent underline decoration-forge-700">Google NotebookLM</a>.</li>
+                        <li>Use <strong>Prompt 1</strong> to start the Deep Research Agent.</li>
+                        <li>Once research is complete, paste <strong>Prompt 2</strong> into the chat to get your report.</li>
+                        <li><strong>Export</strong> the report and upload it below!</li>
                       </ol>
                     </div>
+
                   </div>
                 )}
               </div>
@@ -968,8 +1004,12 @@ const ProjectProvider = () => {
   const generateResearchPrompt = async () => {
     setState(prev => ({ ...prev, isGenerating: true }));
     try {
-      const result = await GeminiService.generateResearchPrompt(state.synthesizedIdea);
-      setState(prev => ({ ...prev, notebookLmPrompt: result }));
+      const { mission, report } = await GeminiService.generateResearchPrompt(state.synthesizedIdea);
+      setState(prev => ({
+        ...prev,
+        researchMissionPrompt: mission,
+        reportGenerationPrompt: report
+      }));
     } catch (error) {
       console.error("Research prompt generation failed:", error);
       alert("Failed to generate research prompt.");

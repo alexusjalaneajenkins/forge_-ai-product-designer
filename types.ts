@@ -29,7 +29,8 @@ export interface ProjectState {
   roadmapOutput: string;
   designSystemOutput: string;
   codePromptOutput: string;
-  notebookLmPrompt?: string;
+  researchMissionPrompt?: string; // For Deep Research Agent
+  reportGenerationPrompt?: string; // For Standard Chat Analysis
   isGenerating: boolean;
 }
 
