@@ -25,7 +25,8 @@ import {
   X,
   Moon,
   Sun,
-  Check
+  Check,
+  Database
 } from 'lucide-react';
 import { ProjectState, ProjectStep, ResearchDocument, NavItem, ProjectMetadata } from './types';
 import * as GeminiService from './services/geminiService';
@@ -671,54 +672,84 @@ const DesignPage = () => {
     <div className="max-w-5xl mx-auto h-full flex flex-col animate-fade-in">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-forge-text mb-2">Design Blueprint</h2>
-          <p className="text-forge-muted">Establish the visual identity, components, and UX flow.</p>
+          <h2 className="text-3xl font-bold text-forge-text mb-2">Design & Logic</h2>
+          <p className="text-forge-muted">Generate prompts for Stitch (Frontend) and Opal (Backend).</p>
         </div>
         <button
           onClick={() => generateArtifact(ProjectStep.DESIGN)}
           disabled={state.isGenerating || !state.roadmapOutput}
           className="bg-forge-accent hover:bg-orange-600 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-lg shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2"
         >
-          {state.isGenerating ? "Designing..." : "Create Blueprint"}
+          {state.isGenerating ? "Designing..." : "Generate Directives"}
         </button>
       </div>
 
-      <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col flex-1 min-h-0 overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-forge-700 bg-forge-900/30 flex items-center justify-between">
-          <span className="text-sm font-semibold text-forge-500 uppercase tracking-wider flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Design Blueprint
-          </span>
-          {state.designSystemOutput && (
-            <CopyButton
-              text={state.designSystemOutput}
-              className="hover:text-forge-text"
-              title="Copy Design System (Paste into Google Docs for best formatting)"
-            />
-          )}
-        </div>
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
-          {state.designSystemOutput ? (
-            <MarkdownRenderer content={state.designSystemOutput} />
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-forge-muted">
-              <Palette className="w-12 h-12 mb-4 text-forge-300" />
-              <p className="text-forge-text font-medium">Design system will be rendered here.</p>
-              {!state.roadmapOutput && <p className="text-sm text-red-500 mt-2">Prerequisite: Generate Roadmap first.</p>}
-            </div>
-          )}
-        </div>
-        {state.designSystemOutput && (
-          <div className="p-4 border-t border-forge-700 bg-forge-900/30 flex justify-end">
-            <button
-              onClick={() => navigate('/code')}
-              className="text-white bg-forge-text hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-            >
-              Proceed to Coding <ChevronRight className="w-4 h-4" />
-            </button>
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
+
+        {/* Stitch Prompt */}
+        <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-forge-700 bg-forge-900/30 flex items-center justify-between">
+            <span className="text-sm font-semibold text-forge-500 uppercase tracking-wider flex items-center gap-2">
+              <Palette className="w-4 h-4" />
+              Stitch (Frontend)
+            </span>
+            {state.stitchPrompt && (
+              <CopyButton
+                text={state.stitchPrompt}
+                className="hover:text-forge-text"
+                title="Copy Stitch Prompt (Paste into Stitch)"
+              />
+            )}
           </div>
-        )}
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-white font-mono text-xs leading-relaxed text-forge-text">
+            {state.stitchPrompt ? (
+              <pre className="whitespace-pre-wrap">{state.stitchPrompt}</pre>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-forge-muted font-sans opacity-50">
+                <p>Waiting for generation...</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Opal Prompt */}
+        <div className="bg-forge-950 border border-forge-700 rounded-xl flex flex-col overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-forge-700 bg-forge-900/30 flex items-center justify-between">
+            <span className="text-sm font-semibold text-forge-500 uppercase tracking-wider flex items-center gap-2">
+              <Database className="w-4 h-4" />
+              Opal (Backend)
+            </span>
+            {state.opalPrompt && (
+              <CopyButton
+                text={state.opalPrompt}
+                className="hover:text-forge-text"
+                title="Copy Opal Prompt (Paste into Opal)"
+              />
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-white font-mono text-xs leading-relaxed text-forge-text">
+            {state.opalPrompt ? (
+              <pre className="whitespace-pre-wrap">{state.opalPrompt}</pre>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-forge-muted font-sans opacity-50">
+                <p>Waiting for generation...</p>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
+
+      {(state.stitchPrompt || state.opalPrompt) && (
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={() => navigate('/code')}
+            className="text-white bg-forge-text hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+          >
+            Proceed to Integration <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -730,15 +761,16 @@ const CodePage = () => {
     <div className="max-w-5xl mx-auto h-full flex flex-col animate-fade-in">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-forge-text mb-2">Engineering Prompt</h2>
+          <h2 className="text-3xl font-bold text-forge-text mb-2">Antigravity Integration</h2>
+          <p className="text-forge-muted">Generate the 'Lead Engineer' prompt to assemble your Stitch & Opal parts.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => generateArtifact(ProjectStep.CODE)}
-            disabled={state.isGenerating || !state.designSystemOutput}
+            disabled={state.isGenerating || !state.stitchPrompt}
             className="bg-forge-accent hover:bg-orange-600 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-lg shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2"
           >
-            {state.isGenerating ? "Compiling..." : "Generate Master Prompt"}
+            {state.isGenerating ? "Compiling..." : "Generate Integration Prompt"}
           </button>
         </div>
       </div>
@@ -747,24 +779,24 @@ const CodePage = () => {
         <div className="p-4 border-b border-forge-700 bg-forge-900/30 flex items-center justify-between">
           <span className="text-sm font-semibold text-forge-500 uppercase tracking-wider flex items-center gap-2">
             <Terminal className="w-4 h-4" />
-            Master Prompt (Copy this to IDE)
+            Antigravity Prompt (Copy to IDE)
           </span>
-          {state.codePromptOutput && (
+          {state.antigravityPrompt && (
             <CopyButton
-              text={state.codePromptOutput}
+              text={state.antigravityPrompt}
               className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-transparent bg-forge-800 text-forge-text hover:bg-forge-200 border-forge-700`}
-              title="Copy to Clipboard (Paste into Google Docs for best formatting)"
+              title="Copy to Clipboard (Paste into Cursor/Windsurf)"
             />
           )}
         </div>
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar font-mono text-sm leading-relaxed bg-white">
-          {state.codePromptOutput ? (
-            <pre className="whitespace-pre-wrap text-forge-text font-mono">{state.codePromptOutput}</pre>
+          {state.antigravityPrompt ? (
+            <pre className="whitespace-pre-wrap text-forge-text font-mono">{state.antigravityPrompt}</pre>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-forge-muted font-sans">
               <Code2 className="w-12 h-12 mb-4 text-forge-300" />
-              <p className="text-forge-text font-medium">The final artifact will appear here.</p>
-              {!state.designSystemOutput && <p className="text-sm text-red-500 mt-2">Prerequisite: Complete Design Step.</p>}
+              <p className="text-forge-text font-medium">The integration prompt will appear here.</p>
+              {!state.stitchPrompt && <p className="text-sm text-red-500 mt-2">Prerequisite: Generate Design Directives first.</p>}
             </div>
           )}
         </div>
@@ -1042,11 +1074,17 @@ const ProjectProvider = () => {
         const result = await GeminiService.generatePlan(state.prdOutput);
         setState(prev => ({ ...prev, roadmapOutput: result }));
       } else if (step === ProjectStep.DESIGN) {
-        const result = await GeminiService.generateDesignSystem(state.prdOutput, state.roadmapOutput);
-        setState(prev => ({ ...prev, designSystemOutput: result }));
+        const result = await GeminiService.generateDesignPrompts(state.prdOutput, state.roadmapOutput);
+        setState(prev => ({
+          ...prev,
+          stitchPrompt: result.stitch,
+          opalPrompt: result.opal,
+          // Deprecate legacy designSystemOutput or reuse it if needed, but for now we focus on the prompts
+          designSystemOutput: result.stitch + "\n\n" + result.opal
+        }));
       } else if (step === ProjectStep.CODE) {
-        const result = await GeminiService.generateCodePrompt(state);
-        setState(prev => ({ ...prev, codePromptOutput: result }));
+        const result = await GeminiService.generateAntigravityPrompt(state);
+        setState(prev => ({ ...prev, antigravityPrompt: result, codePromptOutput: result }));
       }
     } catch (error) {
       console.error("Generation failed:", error);

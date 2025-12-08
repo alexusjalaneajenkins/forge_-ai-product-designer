@@ -31,6 +31,9 @@ export interface ProjectState {
   codePromptOutput: string;
   researchMissionPrompt?: string; // For Deep Research Agent
   reportGenerationPrompt?: string; // For Standard Chat Analysis
+  stitchPrompt?: string; // For Stitch (Frontend)
+  opalPrompt?: string; // For Opal (Backend)
+  antigravityPrompt?: string; // For Antigravity (Integration)
   isGenerating: boolean;
 }
 

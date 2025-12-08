@@ -83,7 +83,7 @@ export const refineIdea = async (rawInput: string): Promise<string> => {
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-2.0-flash',
+    'gemini-2.5-flash',
     prompt, // Pass string directly
     {
       systemInstruction: "You are a Chief Product Officer. Your goal is to clarify and elevate raw ideas into actionable product visions.",
@@ -115,7 +115,7 @@ export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{
 
   const missionResponse = await generateContentWithRetry(
     ai,
-    'gemini-2.0-flash',
+    'gemini-2.5-flash',
     missionPrompt,
     {
       temperature: 0.7,
@@ -238,70 +238,92 @@ export const generatePlan = async (prd: string): Promise<string> => {
   return response.text || "Failed to generate Plan.";
 };
 
-export const generateDesignSystem = async (prd: string, plan: string): Promise<string> => {
+export const generateDesignPrompts = async (prd: string, plan: string): Promise<{ stitch: string, opal: string }> => {
   const ai = getClient();
-  const prompt = `
-    Based on the PRD and Plan, create a Design System & Blueprint.
 
-    PRD: ${prd.substring(0, 3000)}... (truncated for context)
-    PLAN: ${plan.substring(0, 3000)}... (truncated for context)
-
-    TASK:
-    1. Define the Color Palette (Primary, Secondary, Accent, Backgrounds) with hex codes and rationale.
-    2. Typography choices (Headings, Body).
-    3. UI Component Library definition (List core components needed).
-    4. UX Flow description for the main user journey.
-    5. A text-based description of the 'Vibe' (e.g., Professional, Playful, Industrial).
+  // 1. Generate Stitch (Frontend/Visual) Prompt
+  const stitchPrompt = `
+    Based on the following PRD and Roadmap, create a detailed prompt for "Stitch", a frontend generation tool.
     
-    Output in Markdown.
+    PRD CONTEXT: ${prd.substring(0, 1500)}...
+    
+    TASK:
+    Write a prompt that instructs Stitch to:
+    1. Define the Visual Identity (Color Palette, Typography, Vibe).
+    2. Create the Component Library (Buttons, Cards, Inputs).
+    3. Generate the Page Layouts (Home, Dashboard, Settings).
+    4. Focus on modern, premium aesthetics (Glassmorphism/Neo-brutalism/Clean).
+    
+    Output ONLY the raw prompt text for Stitch.
   `;
 
-  const response = await generateContentWithRetry(
-    ai,
-    'gemini-2.0-flash',
-    prompt,
-    {
-      systemInstruction: "You are a Senior UI/UX Designer. Focus on aesthetics, accessibility, and modern design trends.",
-    }
-  );
+  // 2. Generate Opal (Backend/Logic) Prompt
+  const opalPrompt = `
+    Based on the following PRD and Roadmap, create a detailed prompt for "Opal", a backend logic generation tool.
+    
+    PRD CONTEXT: ${prd.substring(0, 1500)}...
+    
+    TASK:
+    Write a prompt that instructs Opal to:
+    1. Define the Data Schema (Users, Projects, Items).
+    2. Outline the API Endpoints (REST/GraphQL).
+    3. Describe the Business Logic flows (Authentication, Data Processing).
+    4. Ensure security and scalability.
+    
+    Output ONLY the raw prompt text for Opal.
+  `;
 
-  return response.text || "Failed to generate Design.";
+  const [stitchRes, opalRes] = await Promise.all([
+    generateContentWithRetry(ai, 'gemini-2.5-flash', stitchPrompt, { temperature: 0.7 }),
+    generateContentWithRetry(ai, 'gemini-2.5-flash', opalPrompt, { temperature: 0.7 })
+  ]);
+
+  return {
+    stitch: stitchRes.text || "Failed to generate Stitch prompt.",
+    opal: opalRes.text || "Failed to generate Opal prompt."
+  };
 };
 
-export const generateCodePrompt = async (projectState: ProjectState): Promise<string> => {
+export const generateAntigravityPrompt = async (projectState: ProjectState): Promise<string> => {
   const ai = getClient();
 
   const prompt = `
-    I need a master prompt to give to an AI coding agent (like yourself or a Cursor bot) to build this entire application.
+    ACT AS: Lead Software Engineer & Integrator ("Antigravity").
     
-    Summarize the Project:
-    - Idea: ${projectState.synthesizedIdea || projectState.ideaInput}
-    - Key Design Elements: Extract from Design System output.
-    - Stack: React, Tailwind, TypeScript.
+    CONTEXT:
+    We are building a web application using the Stitch (Frontend) and Opal (Backend) workflow.
     
-    DESIGN SYSTEM CONTEXT:
-    ${projectState.designSystemOutput}
-
-    PLAN CONTEXT:
+    PROJECT IDEA:
+    ${projectState.synthesizedIdea || projectState.ideaInput}
+    
+    FRONTEND (Stitch) DIRECTION:
+    ${projectState.stitchPrompt}
+    
+    BACKEND (Opal) DIRECTION:
+    ${projectState.opalPrompt}
+    
+    ROADMAP:
     ${projectState.roadmapOutput}
-
-    TASK:
-    Write a highly detailed "Master Prompt" that I can copy and paste into an IDE AI to scaffold the project. 
-    It should specify the stack (React + Vite + TS + Tailwind), directory structure, and the first 3 core components to build.
     
-    CRITICAL INSTRUCTION:
-    Return ONLY the raw prompt text. Do not include any conversational filler like "Here is your prompt" or markdown code blocks (\`\`\`). 
-    The output must be ready to copy-paste directly.
+    TASK:
+    Write a master "Integration Prompt" that you would give to an IDE AI (like Cursor/Windsurf) to assemble the final application.
+    This prompt must:
+    1. Instruct how to scaffold the project (Vite + React + TS + Tailwind).
+    2. Explain how to implement the Stitch components (give structure).
+    3. Explain how to wire up the Opal logic/APIs.
+    4. Define the folder structure.
+    
+    CRITICAL: Return ONLY the raw prompt text suitable for copy-pasting.
   `;
 
   const response = await generateContentWithRetry(
     ai,
-    'gemini-2.0-flash',
+    'gemini-2.5-flash',
     prompt,
     {
       systemInstruction: "You are a Lead Software Engineer. You write precise, technical specifications for other developers.",
     }
   );
 
-  return response.text || "Failed to generate Code Prompt.";
+  return response.text || "Failed to generate Antigravity Prompt.";
 };
