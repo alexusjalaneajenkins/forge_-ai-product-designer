@@ -21,12 +21,13 @@ const generateContentWithRetry = async (
   let attempt = 0;
   while (attempt < maxRetries) {
     try {
-      const model = ai.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent({
+      // Use ai.models.generateContent which is the correct API for @google/genai SDK
+      const response = await ai.models.generateContent({
+        model: modelName,
         contents: contents,
-        generationConfig: config
+        config: config
       });
-      return result.response;
+      return response;
     } catch (error: any) {
       // Check for 429 (Resource Exhausted) or 503 (Service Unavailable)
       const isRateLimit = error.message?.includes('429') || error.status === 429 || error.code === 429;
@@ -73,12 +74,10 @@ export const refineIdea = async (rawInput: string): Promise<string> => {
   const response = await generateContentWithRetry(
     ai,
     'gemini-1.5-flash',
-    [{ role: 'user', parts: [{ text: prompt }] }],
+    prompt, // Pass string directly
     {
+      systemInstruction: "You are a Chief Product Officer. Your goal is to clarify and elevate raw ideas into actionable product visions.",
       temperature: 0.7,
-      // systemInstruction is not directly supported in all SDK versions in the same way, 
-      // but for V1beta/latest usually it's passed differently or via systemInstruction param if creating model.
-      // Adjusting to standard generationConfig if needed, but keeping simple for now.
     }
   );
 
@@ -107,7 +106,7 @@ export const generateResearchPrompt = async (synthesizedIdea: string): Promise<{
   const missionResponse = await generateContentWithRetry(
     ai,
     'gemini-1.5-flash',
-    [{ role: 'user', parts: [{ text: missionPrompt }] }],
+    missionPrompt,
     {
       temperature: 0.7,
     }
@@ -193,8 +192,9 @@ export const generatePRD = async (idea: string, research: ResearchDocument[]): P
   const response = await generateContentWithRetry(
     ai,
     'gemini-1.5-flash',
-    [{ role: 'user', parts: parts }],
+    { parts }, // Pass object with parts
     {
+      systemInstruction: "You are a world-class Product Manager. You are strict, detailed, and focus on viability and user value.",
       temperature: 0.7,
     }
   );
@@ -219,7 +219,10 @@ export const generatePlan = async (prd: string): Promise<string> => {
   const response = await generateContentWithRetry(
     ai,
     'gemini-1.5-pro',
-    [{ role: 'user', parts: [{ text: prompt }] }]
+    prompt,
+    {
+      systemInstruction: "You are a Technical Project Manager. Break down complex goals into achievable tasks.",
+    }
   );
 
   return response.text || "Failed to generate Plan.";
@@ -246,9 +249,9 @@ export const generateDesignSystem = async (prd: string, plan: string): Promise<s
   const response = await generateContentWithRetry(
     ai,
     'gemini-1.5-flash',
-    [{ role: 'user', parts: [{ text: prompt }] }],
+    prompt,
     {
-      temperature: 0.7,
+      systemInstruction: "You are a Senior UI/UX Designer. Focus on aesthetics, accessibility, and modern design trends.",
     }
   );
 
@@ -284,7 +287,10 @@ export const generateCodePrompt = async (projectState: ProjectState): Promise<st
   const response = await generateContentWithRetry(
     ai,
     'gemini-1.5-flash',
-    [{ role: 'user', parts: [{ text: prompt }] }]
+    prompt,
+    {
+      systemInstruction: "You are a Lead Software Engineer. You write precise, technical specifications for other developers.",
+    }
   );
 
   return response.text || "Failed to generate Code Prompt.";
